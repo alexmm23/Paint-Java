@@ -27,8 +27,6 @@ public class SimplePaint extends JFrame {
         initialX = 0;
         initialY = 0;
         patterns = new float[][]{{5, 5}, {10, 10}, {20, 20}};
-
-        // Crear área de dibujo
         canvas = new BufferedImage(800, 500, BufferedImage.TYPE_INT_ARGB);
         tempImage = new BufferedImage(800, 500, BufferedImage.TYPE_INT_ARGB);
         drawPanel = new JPanel() {
@@ -40,8 +38,6 @@ public class SimplePaint extends JFrame {
             }
         };
         drawPanel.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
-
-        // Agregar MouseListener y MouseMotionListener
         drawPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -68,12 +64,12 @@ public class SimplePaint extends JFrame {
                     return;
                 }
                 clearTempImage();
-                drawShape((int) initialX, (int) initialY, e.getX(), e.getY()); // Dibujar la figura en tempImage
+                drawShape((int) initialX, (int) initialY, e.getX(), e.getY());
                 drawPanel.repaint();
             }
         });
-
-        this.addKeyListener(new KeyAdapter() {
+        //Añadir evento para cambiar el tamaño del borrador
+        addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if(eraserMode) {
