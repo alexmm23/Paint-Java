@@ -10,11 +10,14 @@ public class SimplePaint extends JFrame {
     private JPanel drawPanel;
     private Color currentColor = Color.BLACK;
     private String selectedShape = "Circle";
+    private int eraserSize = 20;
     private BufferedImage canvas, tempImage;
     private float initialX, initialY;
     private Graphics2D graphics2D, tempGraphics2D;
     private final String IMAGES_PATH = "src/images/";
     private boolean eraserMode = false;
+    private float[][] patterns;
+    private int currentPattern = 0;
 
     public SimplePaint() {
         setTitle("Simple Paint");
@@ -23,6 +26,7 @@ public class SimplePaint extends JFrame {
         setLayout(new BorderLayout());
         initialX = 0;
         initialY = 0;
+        patterns = new float[][]{{5, 5}, {10, 10}, {20, 20}};
 
         // Crear área de dibujo
         canvas = new BufferedImage(800, 500, BufferedImage.TYPE_INT_ARGB);
@@ -58,13 +62,31 @@ public class SimplePaint extends JFrame {
         drawPanel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                clearTempImage(); // Limpiar la imagen temporal en cada arrastre
+                if (eraserMode) {
+                    drawShape((int) initialX, (int) initialY, e.getX(), e.getY());
+                    drawFinalShape(e.getX(), e.getY());
+                    return;
+                }
+                clearTempImage();
                 drawShape((int) initialX, (int) initialY, e.getX(), e.getY()); // Dibujar la figura en tempImage
                 drawPanel.repaint();
             }
         });
 
-
+        this.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if(eraserMode) {
+                    System.out.println(e.getKeyCode());
+                    if (e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_ADD || e.getKeyCode() == 521)) {
+                        eraserSize += 10;
+                        System.out.println(eraserSize);
+                    } else if (e.isControlDown() &&(e.getKeyCode() == KeyEvent.VK_SUBTRACT || e.getKeyCode() == 45)) {
+                        eraserSize = Math.max(5, eraserSize - 10);
+                    }
+                }
+            }
+        });
         // Crear menú y agregar ítems
         menuBar = new JMenuBar();
         menuBar.setSize(800, 30);
@@ -77,35 +99,32 @@ public class SimplePaint extends JFrame {
         menuItemClear = createMenu("Limpiar", IMAGES_PATH + "trash.png");
         menuItemLine = createMenu("Linea", IMAGES_PATH + "linea.png");
         menuItemDottedLine = createMenu("Linea", IMAGES_PATH + "linea-discontinua.png");
+        menuItemColor = createMenu("Color", IMAGES_PATH + "paleta-de-color.png");
 
         // Agregar eventos a los ítems del menú
         menuItemCircle.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                selectedShape = "Circle";
-                System.out.println("Circulo");
+                handleShapeMousePressed("Circle");
             }
 
         });
         menuItemSquare.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                selectedShape = "Square";
-                System.out.println("Cuadrado");
+                handleShapeMousePressed("Square");
             }
         });
         menuItemLine.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                selectedShape = "Line";
-                System.out.println("Linea");
+                handleShapeMousePressed("Line");
             }
         });
         menuItemDottedLine.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                selectedShape = "DottedLine";
-                System.out.println("Linea discontinua");
+                handleShapeMousePressed("DottedLine");
             }
         });
         menuItemEraser.addMouseListener(new MouseAdapter() {
@@ -118,6 +137,12 @@ public class SimplePaint extends JFrame {
                     currentColor = Color.BLACK;
                 }
                 setCursor(new Cursor(eraserMode ? Cursor.DEFAULT_CURSOR : Cursor.CROSSHAIR_CURSOR));
+            }
+        });
+        menuItemColor.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                chooseColor();
             }
         });
 
@@ -133,6 +158,7 @@ public class SimplePaint extends JFrame {
         menuBar.add(menuItemDottedLine);
         menuBar.add(menuItemEraser);
         menuBar.add(menuItemClear);
+        menuBar.add(menuItemColor);
 
 
         // Establecer la barra de menú
@@ -140,6 +166,24 @@ public class SimplePaint extends JFrame {
 
         // Añadir panel de dibujo al marco
         add(drawPanel, BorderLayout.CENTER);
+    }
+
+
+    private void handleShapeMousePressed(String shape) {
+        selectedShape = shape;
+        eraserMode = false;
+        if (currentColor == Color.WHITE)
+            currentColor = Color.BLACK;
+        if (Objects.equals(shape, "Circle") || Objects.equals(shape, "Square")) {
+            setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
+        } else {
+            setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+        }
+        if (Objects.equals(shape, "DottedLine")) {
+            currentPattern = JOptionPane.showOptionDialog(this, "Escoge un patrón", "Patron de linea",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"5, 5", "10, 10", "20, 20"}, 0);
+        }
+        System.out.println(shape);
     }
 
     private JMenu createMenu(String text, String iconPath) {
@@ -152,25 +196,26 @@ public class SimplePaint extends JFrame {
     // Método para dibujar en la imagen temporal
     private void drawShape(int startX, int startY, int endX, int endY) {
         tempGraphics2D = (Graphics2D) tempImage.getGraphics(); // Dibujar en tempImage
-        tempGraphics2D.setColor(currentColor);
-        int max = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
-        if(eraserMode){
-            selectedShape = "";
+
+        if (eraserMode) {
             tempGraphics2D.setColor(Color.WHITE);
-        }
-        if (selectedShape.equals("Circle")) {
-            int diameter = max;
-            tempGraphics2D.drawOval(Math.min(startX, endX), Math.min(startY, endY), diameter, diameter);
-        } else if (selectedShape.equals("Square")) {
-            int side = max;
-            tempGraphics2D.fillRect(Math.min(startX, endX), Math.min(startY, endY), side, side);
-        } else if (selectedShape.equals("Line")) {
-            tempGraphics2D.drawLine(startX, startY, endX, endY);
-        } else if (selectedShape.equals("DottedLine")) {
-            tempGraphics2D.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[]{5}, 0));
-            tempGraphics2D.drawLine(startX, startY, endX, endY);
-        }else{
-            tempGraphics2D.fillOval(getX(),getY(), endX, endY);
+            tempGraphics2D.fillRect(endX - eraserSize / 2, endY - eraserSize / 2, eraserSize, eraserSize);
+        } else {
+            tempGraphics2D.setColor(currentColor);
+            int max = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
+            int minX = Math.min(startX, endX);
+            int minY = Math.min(startY, endY);
+            if (selectedShape.equals("Circle")) {
+                tempGraphics2D.drawOval(minX, minY, max, max);
+            } else if (selectedShape.equals("Square")) {
+                int side = max;
+                tempGraphics2D.drawRect(minX, minY, side, side);
+            } else if (selectedShape.equals("Line")) {
+                tempGraphics2D.drawLine(startX, startY, endX, endY);
+            } else if (selectedShape.equals("DottedLine")) {
+                tempGraphics2D.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, patterns[currentPattern], 0));
+                tempGraphics2D.drawLine(startX, startY, endX, endY);
+            }
         }
     }
 
@@ -182,12 +227,14 @@ public class SimplePaint extends JFrame {
         g2d.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         drawPanel.repaint();
     }
+
     private void drawFinalShape(int x, int y) {
         graphics2D = (Graphics2D) canvas.getGraphics();
         graphics2D.drawImage(tempImage, 0, 0, null);
         tempImage = new BufferedImage(800, 500, BufferedImage.TYPE_INT_ARGB);
         drawPanel.repaint();
     }
+
     // Limpiar la imagen temporal
     private void clearTempImage() {
         Graphics2D g2d = (Graphics2D) tempImage.getGraphics();
