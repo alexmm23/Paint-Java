@@ -4,8 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="91a64ba6-8c7e-4bac-a849-2b5f4bcdf6eb" name="Changes" comment="Agregar paleta de colores, redimensionamiento de borrador, opciones de diferentes strokes de lineas">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="91a64ba6-8c7e-4bac-a849-2b5f4bcdf6eb" name="Changes" comment="Limpieza de comentarios">
       <change beforePath="$PROJECT_DIR$/src/SimplePaint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/SimplePaint.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -32,23 +31,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Application.SimplePaint.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Usuario/IdeaProjects/Paint2/src/images&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "Application.SimplePaint.executor": "Debug",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/Usuario/IdeaProjects/Paint2/src/images",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\Usuario\IdeaProjects\Paint2\src\images" />
@@ -76,7 +75,7 @@
       <workItem from="1725548621219" duration="1034000" />
       <workItem from="1725556579957" duration="4768000" />
       <workItem from="1725636649357" duration="1434000" />
-      <workItem from="1725719609774" duration="6971000" />
+      <workItem from="1725719609774" duration="7273000" />
     </task>
     <task id="LOCAL-00001" summary="Dibujo de cuadrado, circulo y lineas. Limpiar funcionando, falta borrador y seleccion de colores">
       <option name="closed" value="true" />
@@ -94,7 +93,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725733173781</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Limpieza de comentarios">
+      <option name="closed" value="true" />
+      <created>1725733902940</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1725733902940</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -114,6 +121,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Dibujo de cuadrado, circulo y lineas. Limpiar funcionando, falta borrador y seleccion de colores" />
     <MESSAGE value="Agregar paleta de colores, redimensionamiento de borrador, opciones de diferentes strokes de lineas" />
-    <option name="LAST_COMMIT_MESSAGE" value="Agregar paleta de colores, redimensionamiento de borrador, opciones de diferentes strokes de lineas" />
+    <MESSAGE value="Limpieza de comentarios" />
+    <option name="LAST_COMMIT_MESSAGE" value="Limpieza de comentarios" />
   </component>
 </project>

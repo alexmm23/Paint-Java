@@ -20,7 +20,7 @@ public class SimplePaint extends JFrame {
     private int currentPattern = 0;
 
     public SimplePaint() {
-        setTitle("Simple Paint");
+        setTitle("Pain't");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
