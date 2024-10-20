@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 
@@ -18,6 +19,9 @@ public class SimplePaint extends JFrame {
     private boolean eraserMode = false;
     private float[][] patterns;
     private int currentPattern = 0;
+
+    private double rotationAngle = 0; // Ángulo de rotación actual
+    private boolean isRotating = false; // Indica si estamos en modo rotación
 
     public SimplePaint() {
         setTitle("Pain't");
@@ -68,21 +72,7 @@ public class SimplePaint extends JFrame {
                 drawPanel.repaint();
             }
         });
-        //Añadir evento para cambiar el tamaño del borrador
-        addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if(eraserMode) {
-                    System.out.println(e.getKeyCode());
-                    if (e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_ADD || e.getKeyCode() == 521)) {
-                        eraserSize += 10;
-                        System.out.println(eraserSize);
-                    } else if (e.isControlDown() &&(e.getKeyCode() == KeyEvent.VK_SUBTRACT || e.getKeyCode() == 45)) {
-                        eraserSize = Math.max(5, eraserSize - 10);
-                    }
-                }
-            }
-        });
+
         // Crear menú y agregar ítems
         menuBar = new JMenuBar();
         menuBar.setSize(800, 30);
@@ -162,6 +152,35 @@ public class SimplePaint extends JFrame {
 
         // Añadir panel de dibujo al marco
         add(drawPanel, BorderLayout.CENTER);
+
+        // Añadir el KeyListener para la rotación
+        addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (eraserMode) {
+                    if (e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_ADD || e.getKeyCode() == 521)) {
+                        eraserSize += 10;
+                    } else if (e.isControlDown() && (e.getKeyCode() == KeyEvent.VK_SUBTRACT || e.getKeyCode() == 45)) {
+                        eraserSize = Math.max(5, eraserSize - 10);
+                    }
+                }
+
+                // Tecla R para rotar
+                if (e.getKeyCode() == KeyEvent.VK_R) {
+                    rotationAngle += Math.PI / 4; // Rota 45 grados (π/4 radianes)
+                    isRotating = true;
+                    drawPanel.repaint();
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_R) {
+                    isRotating = false;
+                }
+            }
+        });
+
     }
 
 
@@ -189,30 +208,46 @@ public class SimplePaint extends JFrame {
         return menu;
     }
 
-    // Método para dibujar en la imagen temporal
+    // Modificar el método drawShape para incluir la rotación
     private void drawShape(int startX, int startY, int endX, int endY) {
-        tempGraphics2D = (Graphics2D) tempImage.getGraphics(); // Dibujar en tempImage
+        tempGraphics2D = (Graphics2D) tempImage.getGraphics();
+        tempGraphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         if (eraserMode) {
             tempGraphics2D.setColor(Color.WHITE);
             tempGraphics2D.fillRect(endX - eraserSize / 2, endY - eraserSize / 2, eraserSize, eraserSize);
-        } else {
-            tempGraphics2D.setColor(currentColor);
-            int max = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
-            int minX = Math.min(startX, endX);
-            int minY = Math.min(startY, endY);
-            if (selectedShape.equals("Circle")) {
-                tempGraphics2D.drawOval(minX, minY, max, max);
-            } else if (selectedShape.equals("Square")) {
-                int side = max;
-                tempGraphics2D.drawRect(minX, minY, side, side);
-            } else if (selectedShape.equals("Line")) {
-                tempGraphics2D.drawLine(startX, startY, endX, endY);
-            } else if (selectedShape.equals("DottedLine")) {
-                tempGraphics2D.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, patterns[currentPattern], 0));
-                tempGraphics2D.drawLine(startX, startY, endX, endY);
-            }
+            return;
         }
+
+        // Guardar la transformación original
+        AffineTransform originalTransform = tempGraphics2D.getTransform();
+
+        tempGraphics2D.setColor(currentColor);
+        int max = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
+        int minX = Math.min(startX, endX);
+        int minY = Math.min(startY, endY);
+
+        // Aplicar la rotación alrededor del centro de la figura
+        if (isRotating || rotationAngle != 0) {
+            int centerX = minX + max / 2;
+            int centerY = minY + max / 2;
+            tempGraphics2D.rotate(rotationAngle, centerX, centerY);
+        }
+
+        // Dibujar la figura
+        if (selectedShape.equals("Circle")) {
+            tempGraphics2D.drawOval(minX, minY, max, max);
+        } else if (selectedShape.equals("Square")) {
+            tempGraphics2D.drawRect(minX, minY, max, max);
+        } else if (selectedShape.equals("Line")) {
+            tempGraphics2D.drawLine(startX, startY, endX, endY);
+        } else if (selectedShape.equals("DottedLine")) {
+            tempGraphics2D.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, patterns[currentPattern], 0));
+            tempGraphics2D.drawLine(startX, startY, endX, endY);
+        }
+
+        // Restaurar la transformación original
+        tempGraphics2D.setTransform(originalTransform);
     }
 
 
@@ -224,9 +259,25 @@ public class SimplePaint extends JFrame {
         drawPanel.repaint();
     }
 
+    // Modificar el método drawFinalShape para mantener la rotación
     private void drawFinalShape(int x, int y) {
         graphics2D = (Graphics2D) canvas.getGraphics();
-        graphics2D.drawImage(tempImage, 0, 0, null);
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Aplicar la misma rotación a la figura final
+        if (rotationAngle != 0) {
+            AffineTransform originalTransform = graphics2D.getTransform();
+            int centerX = (int) (initialX + x) / 2;
+            int centerY = (int) (initialY + y) / 2;
+            graphics2D.rotate(rotationAngle, centerX, centerY);
+            graphics2D.drawImage(tempImage, 0, 0, null);
+            graphics2D.setTransform(originalTransform);
+        } else {
+            graphics2D.drawImage(tempImage, 0, 0, null);
+        }
+
+        // Resetear el ángulo de rotación después de dibujar la figura final
+        rotationAngle = 0;
         tempImage = new BufferedImage(800, 500, BufferedImage.TYPE_INT_ARGB);
         drawPanel.repaint();
     }
