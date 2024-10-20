@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="91a64ba6-8c7e-4bac-a849-2b5f4bcdf6eb" name="Changes" comment="Limpieza de comentarios">
+    <list default="true" id="91a64ba6-8c7e-4bac-a849-2b5f4bcdf6eb" name="Changes" comment="Aplicar traslacion">
+      <change afterPath="$PROJECT_DIR$/.idea/shelf/Changes.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/SimplePaint.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/SimplePaint.java" afterDir="false" />
     </list>
@@ -102,7 +103,15 @@
       <option name="project" value="LOCAL" />
       <updated>1725733902940</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Aplicar sesgado">
+      <option name="closed" value="true" />
+      <created>1729386003856</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1729386003856</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -123,6 +132,8 @@
     <MESSAGE value="Dibujo de cuadrado, circulo y lineas. Limpiar funcionando, falta borrador y seleccion de colores" />
     <MESSAGE value="Agregar paleta de colores, redimensionamiento de borrador, opciones de diferentes strokes de lineas" />
     <MESSAGE value="Limpieza de comentarios" />
-    <option name="LAST_COMMIT_MESSAGE" value="Limpieza de comentarios" />
+    <MESSAGE value="Aplicar sesgado" />
+    <MESSAGE value="Aplicar traslacion" />
+    <option name="LAST_COMMIT_MESSAGE" value="Aplicar traslacion" />
   </component>
 </project>
