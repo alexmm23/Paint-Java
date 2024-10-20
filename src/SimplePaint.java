@@ -20,6 +20,15 @@ public class SimplePaint extends JFrame {
     private float[][] patterns;
     private int currentPattern = 0;
 
+    private JMenu menuItemAreaShear;
+    private boolean isAreaSelectMode = false;
+    private Rectangle selectedArea = null;
+    private Point selectionStart = null;
+    private BufferedImage selectedAreaImage = null;
+    private double areaShearX = 0.0;
+    private double areaShearY = 0.0;
+    private boolean isDraggingSelection = false;
+
     private double rotationAngle = 0; // Ángulo de rotación actual
     private boolean isRotating = false; // Indica si estamos en modo rotación
 
@@ -37,10 +46,58 @@ public class SimplePaint extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.drawImage(canvas, 0, 0, null);
-                g.drawImage(tempImage, 0, 0, null);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.drawImage(canvas, 0, 0, null);
+                g2d.drawImage(tempImage, 0, 0, null);
+
+                // Dibujar el área seleccionada
+                if (selectedArea != null) {
+                    g2d.setColor(new Color(0, 0, 255, 50));
+                    g2d.fill(selectedArea);
+                    g2d.setColor(Color.BLUE);
+                    g2d.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 0, new float[]{5}, 0));
+                    g2d.draw(selectedArea);
+                }
             }
         };
+
+        drawPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (isAreaSelectMode) {
+                    selectionStart = e.getPoint();
+                    selectedArea = new Rectangle(selectionStart);
+                    selectedAreaImage = null;
+                } else {
+                    initialX = e.getX();
+                    initialY = e.getY();
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (isAreaSelectMode) {
+                    if (selectedArea != null && selectedArea.width > 0 && selectedArea.height > 0) {
+                        // Capturar el área seleccionada
+                        selectedAreaImage = new BufferedImage(selectedArea.width, selectedArea.height, BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D g2d = selectedAreaImage.createGraphics();
+                        g2d.drawImage(canvas.getSubimage(selectedArea.x, selectedArea.y, selectedArea.width, selectedArea.height),
+                                0, 0, null);
+                        g2d.dispose();
+
+                        // Mostrar diálogo de sesgado
+                        showShearDialog();
+                    }
+                } else if (!isAreaSelectMode) {
+                    graphics2D = (Graphics2D) canvas.getGraphics();
+                    graphics2D.drawImage(tempImage, 0, 0, null);
+                    clearTempImage();
+                }
+                drawPanel.repaint();
+            }
+
+        });
+
         drawPanel.setCursor(new Cursor(Cursor.CROSSHAIR_CURSOR));
         drawPanel.addMouseListener(new MouseAdapter() {
             @Override
@@ -62,14 +119,18 @@ public class SimplePaint extends JFrame {
         drawPanel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (eraserMode) {
+                if (isAreaSelectMode && selectionStart != null) {
+                    int x = Math.min(selectionStart.x, e.getX());
+                    int y = Math.min(selectionStart.y, e.getY());
+                    int width = Math.abs(e.getX() - selectionStart.x);
+                    int height = Math.abs(e.getY() - selectionStart.y);
+                    selectedArea = new Rectangle(x, y, width, height);
+                    drawPanel.repaint();
+                } else if (!isAreaSelectMode) {
+                    clearTempImage();
                     drawShape((int) initialX, (int) initialY, e.getX(), e.getY());
-                    drawFinalShape(e.getX(), e.getY());
-                    return;
+                    drawPanel.repaint();
                 }
-                clearTempImage();
-                drawShape((int) initialX, (int) initialY, e.getX(), e.getY());
-                drawPanel.repaint();
             }
         });
 
@@ -86,6 +147,22 @@ public class SimplePaint extends JFrame {
         menuItemLine = createMenu("Linea", IMAGES_PATH + "linea.png");
         menuItemDottedLine = createMenu("Linea", IMAGES_PATH + "linea-discontinua.png");
         menuItemColor = createMenu("Color", IMAGES_PATH + "paleta-de-color.png");
+        // Crear nuevo ítem de menú para sesgado de área
+        menuItemAreaShear = createMenu("Sesgar Área", IMAGES_PATH + "shear.png");
+        menuItemAreaShear.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                isAreaSelectMode = !isAreaSelectMode;
+                if (isAreaSelectMode) {
+                    setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+                    selectedArea = null;
+                    selectedAreaImage = null;
+                } else {
+                    setCursor(Cursor.getDefaultCursor());
+                }
+            }
+        });
+        menuBar.add(menuItemAreaShear);
 
         // Agregar eventos a los ítems del menú
         menuItemCircle.addMouseListener(new MouseAdapter() {
@@ -181,6 +258,62 @@ public class SimplePaint extends JFrame {
             }
         });
 
+    }
+    private void showShearDialog() {
+        JPanel panel = new JPanel(new GridLayout(2, 2, 5, 5));
+        JSpinner shearXSpinner = new JSpinner(new SpinnerNumberModel(0.0, -2.0, 2.0, 0.1));
+        JSpinner shearYSpinner = new JSpinner(new SpinnerNumberModel(0.0, -2.0, 2.0, 0.1));
+        panel.add(new JLabel("Sesgar X:"));
+        panel.add(shearXSpinner);
+        panel.add(new JLabel("Sesgar Y:"));
+        panel.add(shearYSpinner);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Ajustar Sesgado",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            areaShearX = (double) shearXSpinner.getValue();
+            areaShearY = (double) shearYSpinner.getValue();
+            applyAreaShear();
+        }
+    }
+
+    private void applyAreaShear() {
+        if (selectedAreaImage == null || selectedArea == null) return;
+
+        // Crear una nueva imagen para el área sesgada
+        BufferedImage sheared = new BufferedImage(selectedArea.width, selectedArea.height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = sheared.createGraphics();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Aplicar la transformación de sesgado
+        AffineTransform at = new AffineTransform();
+        at.translate(selectedArea.width/2, selectedArea.height/2);
+        at.shear(areaShearX, areaShearY);
+        at.translate(-selectedArea.width/2, -selectedArea.height/2);
+        g2d.transform(at);
+
+        // Dibujar la imagen original con el sesgado
+        g2d.drawImage(selectedAreaImage, 0, 0, null);
+        g2d.dispose();
+
+        // Actualizar el canvas principal
+        graphics2D = (Graphics2D) canvas.getGraphics();
+
+        // Limpiar el área original
+        graphics2D.setColor(Color.WHITE);
+        graphics2D.fill(selectedArea);
+
+        // Dibujar la imagen sesgada
+        graphics2D.drawImage(sheared, selectedArea.x, selectedArea.y, null);
+
+        // Limpiar la selección
+        selectedArea = null;
+        selectedAreaImage = null;
+        isAreaSelectMode = false;
+        setCursor(Cursor.getDefaultCursor());
+
+        drawPanel.repaint();
     }
 
 
